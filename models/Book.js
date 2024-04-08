@@ -16,6 +16,19 @@ const userSchema = new Schema(
       type: Number,
       required: false,
     },
+    publisher: {
+      type: {
+        name: {
+          type: String,
+          required: true,
+        },
+        county: {
+          type: Number,
+          required: true,
+        },
+      },
+      required: false,
+    },
   },
   {
     timestamps: true,

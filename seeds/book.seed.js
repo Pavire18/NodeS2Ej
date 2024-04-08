@@ -41,18 +41,24 @@ for (let i = 0; i < 50; i++) {
   bookList.push(newUser);
 }
 
-connect().then(() => {
-  console.log("Tenemos conexión");
+async function populateBooks() {
+  try {
+    await connect();
+    console.log("Tenemos conexión");
 
-  // Borrar datos
-  Book.collection.drop().then(() => {
+    // Borrar datos
+    await Book.collection.drop();
     console.log("Libros eliminados");
 
     // Añadimos usuarios
     const documents = bookList.map((book) => new Book(book));
-    Book.insertMany(documents)
-      .then(() => console.log("Datos guardados correctamente!"))
-      .catch((error) => console.error(error))
-      .finally(() => mongoose.disconnect());
-  });
-});
+    await Book.insertMany(documents);
+    console.log("Datos guardados correctamente!");
+  } catch (error) {
+    console.error(error);
+  } finally {
+    mongoose.disconnect();
+  }
+}
+
+populateBooks();
