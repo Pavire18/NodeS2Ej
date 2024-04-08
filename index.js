@@ -4,7 +4,7 @@ const { bookRouter } = require("./routes/book.routes.js");
 const main = async () => {
   // Conexión a la BBDD
   const { connect } = require("./db.js");
-  await connect();
+  const database = await connect();
 
   // Creamos router de expres
   const PORT = 3000;
@@ -17,7 +17,7 @@ const main = async () => {
 
   // Rutas
   router.get("/", (req, res) => {
-    res.send("Esta es la home de nuestra API");
+    res.send(`Esta es la home de nuestra API usando BBDD --> ${database.connection.name}`);
   });
 
   router.get("*", (req, res) => {
