@@ -2,44 +2,7 @@ const mongoose = require("mongoose");
 const { connect } = require("../db.js");
 const { Book } = require("../models/Book.js");
 const { faker } = require("@faker-js/faker");
-
-const bookList = [
-  {
-    title: "Harry Potter",
-    author: "J.K. Rowling",
-    pages: 543,
-  },
-  {
-    title: "1984",
-    author: "George Orwell",
-    pages: 328,
-  },
-  {
-    title: "To Kill a Mockingbird",
-    author: "Harper Lee",
-    pages: 281,
-  },
-  {
-    title: "The Great Gatsby",
-    author: "F. Scott Fitzgerald",
-    pages: 180,
-  },
-  {
-    title: "Pride and Prejudice",
-    author: "Jane Austen",
-    pages: 279,
-  },
-];
-
-// Creamos usuarios adicionales
-for (let i = 0; i < 50; i++) {
-  const newUser = {
-    title: faker.person.firstName(),
-    author: faker.person.lastName(),
-    pages: faker.number.int({ min: 300, max: 600 }),
-  };
-  bookList.push(newUser);
-}
+const { Author } = require("../models/Author.js");
 
 async function populateBooks() {
   try {
@@ -49,6 +12,50 @@ async function populateBooks() {
     // Borrar datos
     await Book.collection.drop();
     console.log("Libros eliminados");
+
+    const newAuthor = new Author({
+      name: "Pablo",
+      country: "España"
+    });
+
+    const seedAuthor = await newAuthor.save();
+
+    const bookList = [
+      {
+        title: "Harry Potter",
+        author: seedAuthor,
+        pages: 543,
+      },
+      {
+        title: "1984",
+        author: seedAuthor,
+        pages: 328,
+      },
+      {
+        title: "To Kill a Mockingbird",
+        author: seedAuthor,
+        pages: 281,
+      },
+      {
+        title: "The Great Gatsby",
+        author: seedAuthor,
+        pages: 180,
+      },
+      {
+        title: "Pride and Prejudice",
+        author: seedAuthor,
+        pages: 279,
+      },
+    ];
+
+    // Creamos usuarios adicionales
+    for (let i = 0; i < 50; i++) {
+      const newUser = {
+        title: faker.person.firstName(),
+        pages: faker.number.int({ min: 300, max: 600 }),
+      };
+      bookList.push(newUser);
+    }
 
     // Añadimos usuarios
     const documents = bookList.map((book) => new Book(book));

@@ -1,5 +1,6 @@
 const express = require("express");
 const { bookRouter } = require("./routes/book.routes.js");
+const { authorRouter } = require("./routes/author.routes.js");
 
 const main = async () => {
   // Conexión a la BBDD
@@ -24,6 +25,7 @@ const main = async () => {
     res.status(404).send("Lo sentimos :( No hemos encontrado la página solicitada.");
   });
 
+  server.use("/author", authorRouter);
   server.use("/book", bookRouter);
   server.use("/", router);
 

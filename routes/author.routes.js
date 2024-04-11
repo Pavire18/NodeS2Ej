@@ -1,7 +1,7 @@
 const express = require("express");
 
 // Modelos
-const { Book } = require("../models/Book.js");
+const { Author } = require("../models/Author.js");
 
 const router = express.Router();
 
@@ -9,12 +9,11 @@ router.get("/", async (req, res) => {
   try {
     const page = parseInt(req.query.page);
     const limit = parseInt(req.query.limit);
-    const users = await Book.find()
+    const users = await Author.find()
       .limit(limit)
-      .skip((page - 1) * limit)
-      .populate("author");
+      .skip((page - 1) * limit);
 
-    const totalElements = await Book.countDocuments();
+    const totalElements = await Author.countDocuments();
 
     const response = {
       totalItems: totalElements,
@@ -32,26 +31,11 @@ router.get("/", async (req, res) => {
 router.get("/:id", async (req, res) => {
   try {
     const id = req.params.id;
-    const book = await Book.findById(id).populate("author");
-    if (book) {
-      res.json(book);
+    const author = await Author.findById(id);
+    if (author) {
+      res.json(author);
     } else {
       res.status(404).json({});
-    }
-  } catch (error) {
-    res.status(500).json(error);
-  }
-});
-
-router.get("/title/:title", async (req, res) => {
-  const title = req.params.title;
-
-  try {
-    const book = await Book.find({ title }).populate("author");
-    if (book?.length) {
-      res.json(book);
-    } else {
-      res.status(404).json([]);
     }
   } catch (error) {
     res.status(500).json(error);
@@ -61,14 +45,13 @@ router.get("/title/:title", async (req, res) => {
 // Endpoint de creación de usuarios
 router.post("/", async (req, res) => {
   try {
-    const book = new Book({
-      title: req.body.title,
-      author: req.body.author,
-      pages: req.body.pages,
+    const author = new Author({
+      name: req.body.name,
+      country: req.body.country,
     });
 
-    const createdBook = await book.save();
-    return res.status(201).json(createdBook);
+    const createdAuthor = await author.save();
+    return res.status(201).json(createdAuthor);
   } catch (error) {
     res.status(500).json(error);
   }
@@ -77,9 +60,9 @@ router.post("/", async (req, res) => {
 router.delete("/:id", async (req, res) => {
   try {
     const id = req.params.id;
-    const bookDeleted = await Book.findByIdAndDelete(id);
-    if (bookDeleted) {
-      res.json(bookDeleted);
+    const authorDeleted = await Author.findByIdAndDelete(id);
+    if (authorDeleted) {
+      res.json(authorDeleted);
     } else {
       res.status(404).json({});
     }
@@ -91,9 +74,9 @@ router.delete("/:id", async (req, res) => {
 router.put("/:id", async (req, res) => {
   try {
     const id = req.params.id;
-    const bookUpdated = await Book.findByIdAndUpdate(id, req.body, { new: true });
-    if (bookUpdated) {
-      res.json(bookUpdated);
+    const authorUpdated = await Author.findByIdAndUpdate(id, req.body, { new: true });
+    if (authorUpdated) {
+      res.json(authorUpdated);
     } else {
       res.status(404).json({});
     }
@@ -102,4 +85,4 @@ router.put("/:id", async (req, res) => {
   }
 });
 
-module.exports = { bookRouter: router };
+module.exports = { authorRouter: router };
