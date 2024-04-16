@@ -1,4 +1,5 @@
 const express = require("express");
+const cors = require("cors");
 const { bookRouter } = require("./routes/book.routes.js");
 const { authorRouter } = require("./routes/author.routes.js");
 
@@ -15,6 +16,11 @@ const main = async () => {
   // Configuración del server
   server.use(express.json());
   server.use(express.urlencoded({ extended: false }));
+  server.use(
+    cors({
+      origin: "http://localhost:3000",
+    })
+  );
 
   // Rutas
   router.get("/", (req, res) => {

@@ -53,6 +53,11 @@ router.post("/", async (req, res) => {
     const createdAuthor = await author.save();
     return res.status(201).json(createdAuthor);
   } catch (error) {
+    if (error?.name === "ValidationError") {
+      res.status(400).json(error);
+    } else {
+      res.status(500).json(error);
+    }
     res.status(500).json(error);
   }
 });
@@ -81,6 +86,11 @@ router.put("/:id", async (req, res) => {
       res.status(404).json({});
     }
   } catch (error) {
+    if (error?.name === "ValidationError") {
+      res.status(400).json(error);
+    } else {
+      res.status(500).json(error);
+    }
     res.status(500).json(error);
   }
 });
