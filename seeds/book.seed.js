@@ -15,7 +15,7 @@ async function populateBooks() {
 
     const newAuthor = new Author({
       name: "Pablo",
-      country: "España"
+      country: "SPAIN"
     });
 
     const seedAuthor = await newAuthor.save();
@@ -32,7 +32,7 @@ async function populateBooks() {
         pages: 328,
       },
       {
-        title: "To Kill a Mockingbird",
+        title: "To Kill a Mockingbir",
         author: seedAuthor,
         pages: 281,
       },
@@ -42,7 +42,7 @@ async function populateBooks() {
         pages: 180,
       },
       {
-        title: "Pride and Prejudice",
+        title: "Pride and Preju",
         author: seedAuthor,
         pages: 279,
       },
