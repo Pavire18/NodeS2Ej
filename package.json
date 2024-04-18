@@ -7,6 +7,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "seed:books": "node ./seeds/book.seed.js",
     "seed:authors": "node ./seeds/author.seed.js",
+    "seed:book-normalization": "node ./seeds/book-normalization.js",
+    "seed:author-normalization": "node ./seeds/author-normalization.js",
     "start:watch": "node --watch index.js",
     "start": "node index.js",
     "lint": "eslint",
