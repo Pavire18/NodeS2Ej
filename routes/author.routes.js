@@ -1,9 +1,12 @@
 const express = require("express");
 const multer = require("multer");
+const bcrypt = require("bcrypt");
 const fs = require("fs");
+const { generateToken } = require("../utils/token");
 
 // Modelos
 const { Author } = require("../models/Author.js");
+const { isAuth } = require("../middlewares/auth.middleware.js");
 
 const upload = multer({ dest: "public" });
 
@@ -77,9 +80,14 @@ router.post("/", async (req, res, next) => {
   }
 });
 
-router.delete("/:id", async (req, res, next) => {
+router.delete("/:id", isAuth, async (req, res, next) => {
   try {
     const id = req.params.id;
+
+    if (req.author.id !== id && req.author.email !== "admin@gmail.com") {
+      return res.status(401).json({ error: "No tienes autorización para realizar esta operación" });
+    }
+
     const authorDeleted = await Author.findByIdAndDelete(id);
     if (authorDeleted) {
       res.json(authorDeleted);
@@ -91,9 +99,13 @@ router.delete("/:id", async (req, res, next) => {
   }
 });
 
-router.put("/:id", async (req, res, next) => {
+router.put("/:id", isAuth, async (req, res, next) => {
   try {
     const id = req.params.id;
+
+    if (req.author.id !== id && req.author.email !== "admin@gmail.com") {
+      return res.status(401).json({ error: "No tienes autorización para realizar esta operación" });
+    }
     const authorUpdated = await Author.findByIdAndUpdate(id, req.body, { new: true });
     if (authorUpdated) {
       res.json(authorUpdated);
@@ -124,6 +136,35 @@ router.post("/image-upload", upload.single("image"), async (req, res, next) => {
   } else {
     fs.unlinkSync(newPath);
     res.status(404).send("Marca no encontrada");
+  }
+});
+
+router.post("/login", async (req, res, next) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({ error: "Se deben especificar los campos email y password" });
+    }
+
+    const author = await Author.findOne({ email }).select("+password");
+    if (!author) {
+      return res.status(401).json({ error: "Email y/o contraseña incorrectos" });
+    }
+
+    const match = await bcrypt.compare(password, author.password);
+    if (match) {
+      const userWithoutPass = author.toObject();
+      delete userWithoutPass.password;
+
+      const jwtToken = generateToken(author._id, author.email);
+
+      return res.status(200).json({ token: jwtToken });
+    } else {
+      return res.status(401).json({ error: "Email y/o contraseña incorrectos" });
+    }
+  } catch (error) {
+    next(error);
   }
 });
 

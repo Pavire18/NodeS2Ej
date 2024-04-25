@@ -1,4 +1,6 @@
 const mongoose = require("mongoose");
+const validator = require("validator");
+
 const Schema = mongoose.Schema;
 
 const allowedCountries = ["SPAIN", "ITALY", "USA", "GERMANY", "JAPAN", "FRANCE"];
@@ -6,6 +8,23 @@ const allowedCountries = ["SPAIN", "ITALY", "USA", "GERMANY", "JAPAN", "FRANCE"]
 // Creamos el schema del usuario
 const authorSchema = new Schema(
   {
+    email: {
+      type: String,
+      trim: true,
+      required: true,
+      unique: true,
+      validate: {
+        validator: validator.isEmail,
+        message: "Email incorrecto",
+      },
+    },
+    password: {
+      type: String,
+      trim: true,
+      required: true,
+      minLength: [8, "La contraseña debe tener al menos 8 caracteres"],
+      select: false,
+    },
     name: {
       type: String,
       required: true,
