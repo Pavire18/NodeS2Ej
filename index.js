@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const { bookRouter } = require("./routes/book.routes.js");
 const { authorRouter } = require("./routes/author.routes.js");
+const { fileUploadRouter } = require("./routes/fileUpload.routes.js");
 
 const main = async () => {
   // Conexión a la BBDD
@@ -10,17 +11,35 @@ const main = async () => {
 
   // Creamos router de expres
   const PORT = 3000;
-  const server = express();
+  const app = express();
   const router = express.Router();
 
-  // Configuración del server
-  server.use(express.json());
-  server.use(express.urlencoded({ extended: false }));
-  server.use(
+  // Configuración del app
+  app.use(express.json());
+  app.use(express.urlencoded({ extended: false }));
+  app.use(
     cors({
       origin: "http://localhost:3000",
     })
   );
+  app.use((req, res, next) => {
+    const date = new Date();
+    console.log(`Petición de tipo ${req.method} a la url ${req.originalUrl} el ${date}`);
+    next();
+  });
+
+  app.use((err, req, res, next) => {
+    console.log("*** INICIO DE ERROR ***");
+    console.log(`PETICIÓN FALLIDA: ${req.method} a la url ${req.originalUrl}`);
+    console.log(err);
+    console.log("*** FIN DE ERROR ***");
+
+    if (err?.name === "ValidationError") {
+      res.status(400).json(err);
+    } else {
+      res.status(500).json(err);
+    }
+  });
 
   // Rutas
   router.get("/", (req, res) => {
@@ -31,12 +50,14 @@ const main = async () => {
     res.status(404).send("Lo sentimos :( No hemos encontrado la página solicitada.");
   });
 
-  server.use("/author", authorRouter);
-  server.use("/book", bookRouter);
-  server.use("/", router);
+  app.use("/author", authorRouter);
+  app.use("/book", bookRouter);
+  app.use("/public", express.static("public"));
+  app.use("/file-upload", fileUploadRouter)
+  app.use("/", router);
 
-  server.listen(PORT, () => {
-    console.log(`Server levantado en el puerto ${PORT}`);
+  app.listen(PORT, () => {
+    console.log(`app levantado en el puerto ${PORT}`);
   });
 };
 

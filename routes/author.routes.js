@@ -1,14 +1,34 @@
 const express = require("express");
+const multer = require("multer");
+const fs = require("fs");
 
 // Modelos
 const { Author } = require("../models/Author.js");
 
+const upload = multer({ dest: "public" });
+
 const router = express.Router();
 
-router.get("/", async (req, res) => {
+router.get("/", (req, res, next) => {
+  console.log("Estamos en el middleware /car que comprueba parámetros");
+
+  const page = req.query.page ? parseInt(req.query.page) : 1;
+  const limit = req.query.limit ? parseInt(req.query.limit) : 10;
+
+  if (!isNaN(page) && !isNaN(limit) && page > 0 && limit > 0) {
+    req.query.page = page;
+    req.query.limit = limit;
+    next();
+  } else {
+    console.log("Parámetros no válidos:");
+    console.log(JSON.stringify(req.query));
+    res.status(400).json({ error: "Params page or limit are not valid" });
+  }
+});
+
+router.get("/", async (req, res, next) => {
   try {
-    const page = parseInt(req.query.page);
-    const limit = parseInt(req.query.limit);
+    const { page, limit } = req.query;
     const users = await Author.find()
       .limit(limit)
       .skip((page - 1) * limit);
@@ -24,11 +44,11 @@ router.get("/", async (req, res) => {
 
     res.json(response);
   } catch (error) {
-    res.status(500).json(error);
+    next(error);
   }
 });
 
-router.get("/:id", async (req, res) => {
+router.get("/:id", async (req, res, next) => {
   try {
     const id = req.params.id;
     const author = await Author.findById(id);
@@ -38,12 +58,12 @@ router.get("/:id", async (req, res) => {
       res.status(404).json({});
     }
   } catch (error) {
-    res.status(500).json(error);
+    next(error);
   }
 });
 
 // Endpoint de creación de usuarios
-router.post("/", async (req, res) => {
+router.post("/", async (req, res, next) => {
   try {
     const author = new Author({
       name: req.body.name,
@@ -53,16 +73,11 @@ router.post("/", async (req, res) => {
     const createdAuthor = await author.save();
     return res.status(201).json(createdAuthor);
   } catch (error) {
-    if (error?.name === "ValidationError") {
-      res.status(400).json(error);
-    } else {
-      res.status(500).json(error);
-    }
-    res.status(500).json(error);
+    next(error);
   }
 });
 
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", async (req, res, next) => {
   try {
     const id = req.params.id;
     const authorDeleted = await Author.findByIdAndDelete(id);
@@ -72,11 +87,11 @@ router.delete("/:id", async (req, res) => {
       res.status(404).json({});
     }
   } catch (error) {
-    res.status(500).json(error);
+    next(error);
   }
 });
 
-router.put("/:id", async (req, res) => {
+router.put("/:id", async (req, res, next) => {
   try {
     const id = req.params.id;
     const authorUpdated = await Author.findByIdAndUpdate(id, req.body, { new: true });
@@ -86,12 +101,29 @@ router.put("/:id", async (req, res) => {
       res.status(404).json({});
     }
   } catch (error) {
-    if (error?.name === "ValidationError") {
-      res.status(400).json(error);
-    } else {
-      res.status(500).json(error);
-    }
-    res.status(500).json(error);
+    next(error);
+  }
+});
+
+router.post("/image-upload", upload.single("image"), async (req, res, next) => {
+  const originalname = req.file.originalname;
+  const path = req.file.path;
+  const newPath = path + "_" + originalname;
+
+  fs.renameSync(path, newPath);
+
+  const authorId = req.body.brandId;
+  const author = await Author.findById(authorId);
+
+  if (author) {
+    author.image = newPath;
+    await author.save();
+    res.json(author);
+
+    console.log("Author modificada correctamente!");
+  } else {
+    fs.unlinkSync(newPath);
+    res.status(404).send("Marca no encontrada");
   }
 });
 
